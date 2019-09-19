@@ -47,15 +47,33 @@ class ElasticTransport extends Transport
      *
      * @param \GuzzleHttp\ClientInterface $client
      * @param string $key
-     * @param string $username
-     *
-     * @return void
+     * @param $account
      */
     public function __construct(ClientInterface $client, $key, $account)
     {
         $this->client = $client;
         $this->key = $key;
         $this->account = $account;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCredentials()
+    {
+        return [
+            'key' => $this->key,
+            'account' => $this->account
+        ];
+    }
+
+    /**
+     * @param array $credentials
+     */
+    public function setCredentials(array $credentials)
+    {
+        $this->key = $credentials['key'] ?? $this->key;
+        $this->account = $credentials['account'] ?? $this->account;
     }
 
     /**
