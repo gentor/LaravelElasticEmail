@@ -9,12 +9,12 @@
   "license": "MIT",
   "authors": [
     {
-      "name": "Anusha Priyamal",
-      "email": "rdanusha@gmail.com"
-    },
-    {
       "name": "Evgeni Nurkov",
       "email": "evgeni.nurkov@gmail.com"
+    },
+    {
+      "name": "Anusha Priyamal",
+      "email": "rdanusha@gmail.com"
     }
   ],
   "support": {
@@ -23,12 +23,12 @@
   "require": {
     "php": ">=7.0.0",
     "guzzlehttp/guzzle": "^6.3",
-    "laravel/framework": "~5.4"
+    "laravel/framework": "~5.6"
   },
   "autoload": {
     "psr-4": {
       "Gentor\\LaravelElasticEmail\\": "src/"
     }
   },
-  "minimum-stability": "dev"
+  "minimum-stability": "stable"
 }

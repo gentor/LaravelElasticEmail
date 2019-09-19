@@ -8,7 +8,7 @@ Can send emails with multiple attachments
 ### Laravel version
 **5.5** or older - Use Version 1.1.1
 
-**5.6** and forwards - Use version 1.2
+**5.6** and forwards - Use version 1.3
 
 ### Installation ###
 
