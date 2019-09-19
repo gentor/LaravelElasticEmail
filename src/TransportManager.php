@@ -1,19 +1,26 @@
 <?php
 
-namespace Rdanusha\LaravelElasticEmail;
+namespace Gentor\LaravelElasticEmail;
 
 use Illuminate\Mail\TransportManager as LaravelTransportManager;
 
+/**
+ * Class TransportManager
+ * @package Gentor\LaravelElasticEmail
+ */
 class TransportManager extends LaravelTransportManager
 {
-	protected function createElasticEmailDriver()
-	{
-		$config = $this->app['config']->get('services.elastic_email', []);
+    /**
+     * @return ElasticTransport
+     */
+    protected function createElasticEmailDriver()
+    {
+        $config = $this->app['config']->get('services.elastic_email', []);
 
-		return new ElasticTransport(
-			$this->guzzle($config),
-			$config['key'],
-			$config['account']
-		);
-	}
+        return new ElasticTransport(
+            $this->guzzle($config),
+            $config['key'],
+            $config['account']
+        );
+    }
 }

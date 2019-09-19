@@ -1,5 +1,5 @@
 {
-  "name": "rdanusha/laravel-elastic-email",
+  "name": "gentor/laravel-elastic-email",
   "description": "Package for send emails with attachments via elastic email driver",
   "keywords": [
     "laravel",
@@ -11,18 +11,24 @@
     {
       "name": "Anusha Priyamal",
       "email": "rdanusha@gmail.com"
+    },
+    {
+      "name": "Evgeni Nurkov",
+      "email": "evgeni.nurkov@gmail.com"
     }
   ],
   "support": {
     "email": "rdanusha@gmail.com"
   },
   "require": {
+    "php": ">=7.0.0",
+    "guzzlehttp/guzzle": "^6.3",
     "laravel/framework": "~5.4"
   },
   "autoload": {
     "psr-4": {
-      "Rdanusha\\LaravelElasticEmail\\": "src/"
+      "Gentor\\LaravelElasticEmail\\": "src/"
     }
   },
-  "minimum-stability": "stable"
+  "minimum-stability": "dev"
 }

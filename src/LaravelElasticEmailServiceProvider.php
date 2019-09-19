@@ -1,9 +1,13 @@
 <?php
 
-namespace Rdanusha\LaravelElasticEmail;
+namespace Gentor\LaravelElasticEmail;
 
 use Illuminate\Mail\MailServiceProvider as LaravelMailServiceProvider;
 
+/**
+ * Class LaravelElasticEmailServiceProvider
+ * @package Gentor\LaravelElasticEmail
+ */
 class LaravelElasticEmailServiceProvider extends LaravelMailServiceProvider
 {
     /**

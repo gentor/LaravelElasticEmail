@@ -1,13 +1,16 @@
 <?php
 
-namespace Rdanusha\LaravelElasticEmail;
+namespace Gentor\LaravelElasticEmail;
 
+use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Mail\Transport\Transport;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use Swift_Mime_SimpleMessage;
 
+/**
+ * Class ElasticTransport
+ * @package Gentor\LaravelElasticEmail
+ */
 class ElasticTransport extends Transport
 {
 
@@ -42,9 +45,9 @@ class ElasticTransport extends Transport
     /**
      * Create a new Elastic Email transport instance.
      *
-     * @param  \GuzzleHttp\ClientInterface $client
-     * @param  string $key
-     * @param  string $username
+     * @param \GuzzleHttp\ClientInterface $client
+     * @param string $key
+     * @param string $username
      *
      * @return void
      */
@@ -64,7 +67,7 @@ class ElasticTransport extends Transport
         $this->beforeSendPerformed($message);
 
         $data = [
-            'apikey' => $this->key,
+            'api_key' => $this->key,
             'account' => $this->account,
             'msgTo' => $this->getEmailAddresses($message),
             'msgCC' => $this->getEmailAddresses($message, 'getCc'),
@@ -75,89 +78,21 @@ class ElasticTransport extends Transport
             'fromName' => $this->getFromAddress($message)['name'],
             'to' => $this->getEmailAddresses($message),
             'subject' => $message->getSubject(),
-            'bodyHtml' => $message->getBody(),
-            'bodyText' => $this->getText($message),
-
+            'body_html' => $message->getBody(),
+            'body_text' => $this->getText($message),
         ];
 
 
         $attachments = $message->getChildren();
-        $attachmentCount = $this->checkAttachmentCount($attachments);
-        if ($attachmentCount > 0) {
-            $data = $this->attach($attachments, $data);
-        }
-        $ch = curl_init();
-
-        curl_setopt_array($ch, array(
-            CURLOPT_URL => $this->url,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $data,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HEADER => false,
-            CURLOPT_SSL_VERIFYPEER => false
-        ));
-
-        $result = curl_exec($ch);
-        curl_close($ch);
-
-        if ($attachmentCount > 0) {
-            $this->deleteTempAttachmentFiles($data, $attachmentCount);
-        }
+        $result = $this->sendRequest($data, $attachments);
 
         return $result;
     }
 
-
-    /**
-     * Add attachments to post data array
-     * @param $attachments
-     * @param $data
-     * @return mixed
-     */
-    public function attach($attachments, $data)
-    {
-        if (is_array($attachments) && count($attachments) > 0) {
-            $i = 1;
-            foreach ($attachments AS $attachment) {
-                if ($attachment instanceof \Swift_Attachment) {
-                    $attachedFile = $attachment->getBody();
-                    $fileName = $attachment->getFilename();
-                    $ext = pathinfo($fileName, PATHINFO_EXTENSION);
-                    $tempName = uniqid() . '.' . $ext;
-                    Storage::put($tempName, $attachedFile);
-                    $type = $attachment->getContentType();
-                    $attachedFilePath = storage_path($tempName);
-                    $data['file_' . $i] = new \CurlFile($attachedFilePath, $type, $fileName);
-                    $i++;
-                }
-            }
-        }
-
-        return $data;
-    }
-
-
-    /**
-     * Check Swift_Attachment count
-     * @param $attachments
-     * @return bool
-     */
-    public function checkAttachmentCount($attachments)
-    {
-        $count = 0;
-        foreach ($attachments AS $attachment) {
-            if ($attachment instanceof \Swift_Attachment) {
-                $count++;
-            }
-        }
-        return $count;
-    }
-
-
     /**
      * Get the plain text part.
      *
-     * @param  \Swift_Mime_Message $message
+     * @param \Swift_Mime_Message $message
      * @return text|null
      */
     protected function getText(Swift_Mime_SimpleMessage $message)
@@ -186,6 +121,11 @@ class ElasticTransport extends Transport
         ];
     }
 
+    /**
+     * @param Swift_Mime_SimpleMessage $message
+     * @param string $method
+     * @return string
+     */
     protected function getEmailAddresses(Swift_Mime_SimpleMessage $message, $method = 'getTo')
     {
         $data = call_user_func([$message, $method]);
@@ -197,17 +137,66 @@ class ElasticTransport extends Transport
     }
 
     /**
-     * delete temp attachment files
-     * @param $data
-     * @param $count
+     * @param array $data
+     * @param array $attachments
+     * @return mixed
+     * @throws \Exception
      */
-    protected function deleteTempAttachmentFiles($data, $count)
+    protected function sendRequest(array $data, array $attachments = [])
     {
-        for ($i = 1; $i <= $count; $i++) {
-            $file = $data['file_' . $i]->name;
-            if (file_exists($file)) {
-                unlink($file);
+        $options = [];
+
+        if (!empty($attachments)) {
+            $options['multipart'] = $this->parseMultipart($attachments, $data);
+        } else {
+            $options['form_params'] = $data;
+        }
+
+        try {
+            $response = $this->client->request('POST', $this->url, $options);
+            $resp = json_decode($response->getBody()->getContents());
+        } catch (\Exception $e) {
+            throw $e;
+        }
+
+        if (!$resp->success) {
+            throw new \Exception($resp->error);
+        }
+
+        if (isset($resp->data) && $resp->data) {
+            return $resp->data;
+        }
+
+        return $resp;
+    }
+
+    /**
+     * @param array $attachments
+     * @param array $params
+     * @return array
+     */
+    private function parseMultipart(array $attachments, array $params): array
+    {
+        $result = [];
+
+        foreach ($attachments as $key => $attachment) {
+            if ($attachment instanceof \Swift_Attachment) {
+                $result[] = [
+                    'name' => 'file_' . $key,
+                    'contents' => $attachment->getBody(),
+                    'filename' => $attachment->getFilename()
+                ];
             }
         }
+
+        foreach ($params as $key => $param) {
+            $result[] = [
+                'name' => $key,
+                'contents' => $param
+            ];
+        }
+
+        return $result;
     }
+
 }

@@ -17,7 +17,7 @@ Can send emails with multiple attachments
 Install package via composer 
 
 ```bash
-composer require rdanusha/laravel-elastic-email
+composer require gentor/laravel-elastic-email
 ```
 * Step 2
 
@@ -52,7 +52,7 @@ Open **config/app.php** file and go to providers array, Then comment out Laravel
      */
     ...
 //    Illuminate\Mail\MailServiceProvider::class,
-    Rdanusha\LaravelElasticEmail\LaravelElasticEmailServiceProvider::class,
+    Gentor\LaravelElasticEmail\LaravelElasticEmailServiceProvider::class,
     ...
 ],
 ```
