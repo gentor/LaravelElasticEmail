@@ -94,6 +94,8 @@ class ElasticTransport extends Transport
             'msgFromName' => $this->getFromAddress($message)['name'],
             'from' => $this->getFromAddress($message)['email'],
             'fromName' => $this->getFromAddress($message)['name'],
+            'replyTo' => $this->getReplyToAddress($message)['email'],
+            'replyToName' => $this->getReplyToAddress($message)['name'],
             'to' => $this->getEmailAddresses($message),
             'subject' => $message->getSubject(),
             'body_html' => $message->getBody(),
@@ -141,6 +143,23 @@ class ElasticTransport extends Transport
         return [
             'email' => array_keys($message->getFrom())[0],
             'name' => array_values($message->getFrom())[0],
+        ];
+    }
+
+    /**
+     * @param \Swift_Mime_Message $message
+     *
+     * @return array
+     */
+    protected function getReplyToAddress(Swift_Mime_SimpleMessage $message)
+    {
+        if (!$message->getReplyTo()) {
+            return $this->getFromAddress($message);
+        }
+
+        return [
+            'email' => array_keys($message->getReplyTo())[0],
+            'name' => array_values($message->getReplyTo())[0],
         ];
     }
 
