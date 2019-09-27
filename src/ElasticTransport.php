@@ -104,7 +104,12 @@ class ElasticTransport extends Transport
         $attachments = $message->getChildren();
         $result = $this->sendRequest($data, $attachments);
 
-        return $result;
+        $message->getHeaders()->addTextHeader('X-Msg-ID', $result->messageid);
+        $message->getHeaders()->addTextHeader('X-Job-ID', $result->transactionid);
+
+        $this->sendPerformed($message);
+
+        return $this->numberOfRecipients($message);
     }
 
     /**
