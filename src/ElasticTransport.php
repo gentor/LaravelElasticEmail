@@ -81,7 +81,6 @@ class ElasticTransport extends Transport
      */
     public function send(Swift_Mime_SimpleMessage $message, &$failedRecipients = null)
     {
-
         $this->beforeSendPerformed($message);
 
         $data = [
@@ -100,8 +99,9 @@ class ElasticTransport extends Transport
             'subject' => $message->getSubject(),
             'body_html' => $message->getBody(),
             'body_text' => $this->getText($message),
+            'postBack' => optional($message->getHeaders()->get('X-Post-Back'))->getFieldBody(),
+            'isTransactional' => optional($message->getHeaders()->get('X-Transactional'))->getFieldBody() ?: true,
         ];
-
 
         $attachments = $message->getChildren();
         $result = $this->sendRequest($data, $attachments);
