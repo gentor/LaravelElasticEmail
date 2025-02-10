@@ -201,6 +201,10 @@ class ElasticTransport extends Transport
             throw $e;
         }
 
+        if (!is_object($resp)) {
+            throw new \Exception('Invalid response: ' . $resp);
+        }
+
         if (!$resp->success) {
             throw new \Exception($resp->error);
         }
